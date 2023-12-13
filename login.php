@@ -1,41 +1,31 @@
 <?php
-include_once('db.php');
-
+include_once "db.php";
 session_start();
 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $n = 0;
+  $username = $_POST["username"];
+  $password = $_POST["password"];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    
-    $n = 0;
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+  $query = "SELECT * FROM users WHERE username = \"$username\";";
+  $result = $conn->query($query);
 
-    $check = "SELECT * FROM users WHERE username = \"$username\";"; 
-    
+  if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
 
-    if ($result->num_rows > 0) { 
-		while($row = $result->fetch_assoc()) { 
+    if ($password == $row["password"]) {
+      $_SESSION["authenticated"] = true;
+      $_SESSION["username"] = $username;
 
-            if ($username == $row['username'] && $password == $row['password']) {
-                
-                $_SESSION['authenticated'] = true;
-                $_SESSION['username'] = $username; 
-
-                header('Location: index.php');
-                exit;
-            } 
-            else {
-                $n++;
-            }
-        }
-        if ($n == $result->num_rows) {
-            $error = 'Invalid username or password';
-        }
-	} 
-	else { 
-        $error = '0 account in the database';
-	}
-} 
+      header("Location: index.php");
+      exit();
+    } else {
+      $error = "Invalid username or password";
+    }
+  } else {
+    $error = "0 account in the database";
+  }
+}
 ?>
 
 
@@ -53,5 +43,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
 <?php if (isset($error)) {
-    echo $error;
+  echo $error;
 } ?>
