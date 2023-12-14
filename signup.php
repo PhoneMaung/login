@@ -1,61 +1,117 @@
 <?php
 include_once('db.php');
 
-session_start(); // Start the session
+
+session_start();
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-    $i  = 0;
     $username = $_POST['username'];
+    $email = $_POST['email'];
     $password = $_POST['password'];
+    $confirmed_password = $_POST['confirmedpassword'];
 
-    if ($result->num_rows > 0) { 
-		while($row = $result->fetch_assoc()) { 
 
-            if ($username == $row['username']) {
-                
-                $i = 1;
-            } 
+    $name_result = nameCheckDB($username);
+    $email_result = emailCheckDB($email);
+
+    if ($name_result->num_rows > 0) { 
+        $used_username = "<span class=\"alert\">Username isn't available.</span>";
+        if ($email_result->num_rows > 0) { 
+            $used_email = "<span class=\"alert\">$email already has an account.</span>";
         }
-        if ($i == 1) {
-            $error = 'The username isn\'t available';
-        }
+    } 
+    else { 
+        if ($email_result->num_rows > 0) { 
+            $used_email = "<span class=\"alert\">$email already has an account.</span>";
+        } 
         else{
+            if ($password != $confirmed_password) {
+                $pass_not_match = "<span class=\"alert\">Password doesn't match</span>";
+            }
+            else{
+                $save = saveDB($username,$email,$password);
 
-            $add_user = "INSERT INTO users (username,password) VALUES('$username','$password');";
-             
-            $save = $conn->query($add_user);
-
-            if ($save) {
                 $_SESSION['authenticated'] = true;
+                $_SESSION['new'] = true;
                 $_SESSION['username'] = $username; 
-                echo "Account created";
-                header('Location: login.php');
+                $_SESSION['email'] = $email; 
+                
+                header('Location: index.php');
                 exit;
             }
-        }
-	} 
-	else { 
-
-	}
+        } 
+    }
 } 
 ?>
 
 
 <!-- HTML login form -->
-<form method="post">
-    <label for="username">Username:</label>
-    <input type="text" name="username" id="username">
-    <br>
-    <label for="password">Password:</label>
-    <input type="password" name="password" id="password">
-    <br>
-    <button type="submit">signup</button>
-    <a href="login.php">Already have an account?</a>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Signup</h1>
 
+      <form method="post">
 
-<?php if (isset($error)) {
-    echo $error;
-} ?>
+        <div class="text_field">
+          <input type="text" name="username" id="username" required/>
+          <span class="deco"></span>
+          <label for="username">Username</label>
+          <?php if (isset($used_username)) {
+            echo $used_username;
+          } ?>
+        </div>
+
+        <div class="text_field">
+          <input type="email" name="email" id="email" required/>
+          <span class="deco"></span>
+          <label for="email">Email</label>
+          <?php if (isset($used_email)) {
+            echo $used_email;
+          } ?>
+        </div>
+
+        <div class="text_field">
+          <input type="password" name="password" id="password" required/>
+          <span class="deco"></span>
+          <label for="password">Password</label>
+          <?php if (isset($pass_not_match)) {
+            echo $pass_not_match;
+          } ?>
+        </div>
+
+        <div class="text_field">
+          <input type="password" name="confirmedpassword" id="confiemedpassword" required/>
+          <span class="deco"></span>
+          <label for="confiemedpassword">Confirm Password</label>
+          <?php if (isset($pass_not_match)) {
+            echo $pass_not_match;
+          } ?>
+        </div>
+
+        <button type="submit">Signup</button>
+
+        <div class="goto">
+          Already have an account? <a href="login.php">Login</a>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
+
+<?php $conn->close(); ?>

@@ -1,7 +1,22 @@
 <?php
-session_start(); // Start the session
+
+session_start();
 
 
+if ($_SESSION['new'] === true) {
+  $new_acc = "<div
+                class=\"alert alert-light alert-dismissible fade show  mb-0\"
+                role=\"alert\"
+              >
+                <strong>New Account Created !</strong>
+                <button
+                  type=\"button\"
+                  class=\"btn-close\"
+                  data-bs-dismiss=\"alert\"
+                  aria-label=\"Close\"
+                ></button>
+              </div>";
+}
 if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
     // If the user is not authenticated, redirect to the login page
     header('Location: login.php');
@@ -131,6 +146,12 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
           </div>
         </nav>
         <main class="col-10 bg-main">
+
+          <?php if (isset($new_acc)) {
+            echo $new_acc;
+          } 
+          $_SESSION['new'] = false;
+          ?>
 
           <!-- navbar -->
 
